@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OPERAÇÃO POETA — RESGATE</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Cinzel:wght@400;700;900&display=swap');
+
+  :root {
+    --green: #00ff88;
+    --green-dim: #00aa55;
+    --green-dark: #021a0e;
+    --red: #ff2244;
+    --gold: #ffd700;
+    --amber: #ffaa00;
+    --bg: #010a05;
+    --panel: #030e07;
+    --border: #00ff8833;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--green);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 16px 40px;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background: repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,255,136,0.022) 3px,rgba(0,255,136,0.022) 4px);
+    pointer-events:none; z-index:999;
+  }
+  body::after {
+    content:'';
+    position:fixed; inset:0;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.65) 100%);
+    pointer-events:none; z-index:998;
+  }
+
+  @keyframes blink    { 0%,100%{opacity:1} 50%{opacity:0} }
+  @keyframes fadeSlide{ from{opacity:0;transform:translateY(7px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes shake    { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} }
+  @keyframes glow     { 0%,100%{text-shadow:0 0 10px var(--green),0 0 20px var(--green-dim)} 50%{text-shadow:0 0 25px var(--green),0 0 50px var(--green),0 0 80px var(--green-dim)} }
+  @keyframes glowRed  { 0%,100%{text-shadow:0 0 10px var(--red)} 50%{text-shadow:0 0 30px var(--red),0 0 60px var(--red)} }
+  @keyframes glowGold { 0%,100%{text-shadow:0 0 10px var(--gold)} 50%{text-shadow:0 0 30px var(--gold),0 0 60px var(--gold)} }
+  @keyframes scanDown { 0%{top:-10%} 100%{top:110%} }
+  @keyframes pop      { 0%{transform:scale(0.85);opacity:0} 60%{transform:scale(1.06)} 100%{transform:scale(1);opacity:1} }
+  @keyframes borderP  { 0%,100%{border-color:var(--green)} 50%{border-color:var(--green-dim)} }
+  @keyframes flicker  { 0%,100%{opacity:1} 93%{opacity:1} 93.5%{opacity:0.8} 94%{opacity:1} 97%{opacity:0.92} 97.5%{opacity:1} }
+
+  body { animation: flicker 9s infinite; }
+
+  /* ── HEADER ── */
+  header {
+    width:100%; max-width:740px;
+    text-align:center; margin-bottom:22px;
+  }
+  .classified {
+    display:inline-block;
+    background:var(--red); color:#000;
+    font-size:0.58rem; font-weight:bold;
+    letter-spacing:0.4em; padding:3px 16px;
+    margin-bottom:10px;
+    clip-path:polygon(10px 0%,calc(100% - 10px) 0%,100% 50%,calc(100% - 10px) 100%,10px 100%,0% 50%);
+  }
+  .title {
+    font-family:'Cinzel',serif;
+    font-size:clamp(1.1rem,4vw,1.85rem);
+    font-weight:900; letter-spacing:0.12em;
+    color:var(--green); animation:glow 3s infinite; line-height:1.3;
+  }
+  .subtitle {
+    font-size:0.65rem; color:var(--green-dim);
+    letter-spacing:0.3em; margin-top:6px;
+  }
+  .alert-strip {
+    margin-top:12px; padding:10px 16px;
+    border:1px solid var(--red);
+    background:rgba(255,34,68,0.07);
+    font-size:0.72rem; color:#ff8899; line-height:1.65; text-align:left;
+  }
+  .alert-strip strong { color:var(--red); }
+
+  /* ── HUD ── */
+  .hud {
+    width:100%; max-width:740px;
+    display:grid; grid-template-columns:1fr auto 1fr;
+    gap:10px; margin-bottom:14px; align-items:center;
+  }
+  .hud-panel {
+    border:1px solid var(--border);
+    background:var(--panel); padding:10px 14px;
+  }
+  .hud-label { font-size:0.58rem; color:var(--green-dim); letter-spacing:0.22em; margin-bottom:4px; }
+  .timer-display {
+    font-size:clamp(1.7rem,5.5vw,2.7rem);
+    font-weight:bold; color:var(--green);
+    text-shadow:0 0 14px var(--green);
+    letter-spacing:0.05em; line-height:1;
+    transition:color .5s,text-shadow .5s;
+  }
+  .timer-display.warn   { color:var(--amber); text-shadow:0 0 14px var(--amber); }
+  .timer-display.danger { color:var(--red);   text-shadow:0 0 14px var(--red); animation:glowRed .6s infinite; }
+
+  .hud-center { text-align:center; }
+  .level-badge {
+    font-family:'Cinzel',serif;
+    font-size:0.6rem; color:var(--gold);
+    letter-spacing:0.2em; margin-bottom:4px;
+  }
+  .enigma-badge { font-size:0.6rem; color:var(--green-dim); letter-spacing:0.2em; margin-bottom:6px; }
+  .step-dots { display:flex; gap:6px; justify-content:center; }
+  .sdot {
+    width:9px; height:9px; border-radius:50%;
+    border:1px solid #004422; transition:all .4s;
+  }
+  .sdot.done   { background:var(--green); border-color:var(--green); box-shadow:0 0 7px var(--green); }
+  .sdot.active { border-color:var(--green); animation:blink 1s infinite; }
+  .hud-status  { font-size:0.72rem; letter-spacing:0.1em; }
+
+  /* ── PROGRESS ── */
+  .prog-wrap {
+    width:100%; max-width:740px;
+    height:3px; background:#010a05;
+    border:1px solid var(--border); margin-bottom:16px;
+  }
+  .prog-fill {
+    height:100%; background:var(--green);
+    box-shadow:0 0 8px var(--green);
+    transition:width 1s linear, background .5s;
+  }
+
+  /* ── TERMINAL ── */
+  .terminal {
+    width:100%; max-width:740px;
+    border:1px solid var(--green);
+    background:var(--panel);
+    box-shadow:0 0 40px rgba(0,255,136,0.07),inset 0 0 30px rgba(0,255,136,0.02);
+    animation:borderP 4s infinite; position:relative; overflow:hidden;
+  }
+  .terminal::after {
+    content:''; position:absolute; left:0; right:0; height:60px;
+    background:linear-gradient(transparent,rgba(0,255,136,0.035),transparent);
+    animation:scanDown 5s linear infinite; pointer-events:none;
+  }
+  .term-bar {
+    background:var(--green-dark); padding:8px 16px;
+    display:flex; align-items:center; gap:8px;
+    border-bottom:1px solid var(--border);
+  }
+  .tdot { width:9px; height:9px; border-radius:50%; }
+  .tdot.r{background:#ff3b30} .tdot.y{background:#ffcc00} .tdot.g{background:var(--green)}
+  .term-id { margin-left:auto; font-size:0.6rem; color:var(--green-dim); letter-spacing:0.18em; }
+  .term-body { padding:22px; }
+
+  /* ── LOG ── */
+  .log {
+    background:#010805; border:1px solid var(--border);
+    padding:14px 16px; min-height:150px; max-height:230px;
+    overflow-y:auto; margin-bottom:18px;
+    font-size:0.79rem; line-height:1.8;
+  }
+  .log::-webkit-scrollbar{width:3px}
+  .log::-webkit-scrollbar-thumb{background:var(--green-dim)}
+  .ll { margin-bottom:2px; animation:fadeSlide .25s ease; }
+  .ll.sys      { color:var(--green-dim); }
+  .ll.narrative{ color:#88ffcc; }
+  .ll.err      { color:var(--red); }
+  .ll.ok       { color:var(--green); font-weight:bold; }
+  .ll.hint     { color:var(--amber); }
+  .ll.reward   { color:var(--gold); font-size:1.05rem; letter-spacing:0.3em; }
+  .ll.echo     { color:#005533; }
+  .ll.sep      { color:#002211; }
+  .ll.reveal   { color:var(--gold); font-weight:bold; animation:glowGold 1.5s infinite; font-size:0.9rem; }
+  .ll.level-up { color:var(--gold); font-size:0.88rem; letter-spacing:0.1em; }
+
+  /* ── INPUT ── */
+  .input-row { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .prompt-sym { color:var(--green-dim); font-size:0.95rem; white-space:nowrap; }
+  .ans-input {
+    flex:1; background:transparent; border:none;
+    border-bottom:2px solid var(--green);
+    color:var(--green); font-family:'Share Tech Mono',monospace;
+    font-size:1rem; padding:7px 4px; outline:none;
+    letter-spacing:0.1em; transition:border-color .3s; caret-color:var(--green);
+  }
+  .ans-input:focus  { border-color:var(--amber); }
+  .ans-input::placeholder { color:#003322; }
+  .ans-input.shake  { animation:shake .35s ease; }
+  .btn-enter {
+    background:transparent; border:1px solid var(--green);
+    color:var(--green); font-family:'Share Tech Mono',monospace;
+    font-size:0.75rem; padding:8px 18px; cursor:pointer;
+    letter-spacing:0.2em; text-transform:uppercase; transition:all .2s; white-space:nowrap;
+  }
+  .btn-enter:hover { background:var(--green); color:#000; box-shadow:0 0 20px var(--green); }
+
+  /* ── HINT ── */
+  .btn-hint {
+    width:100%; background:transparent; border:1px solid #554400;
+    color:var(--amber); font-family:'Share Tech Mono',monospace;
+    font-size:0.7rem; padding:11px 16px; cursor:pointer;
+    letter-spacing:0.15em; text-transform:uppercase;
+    display:flex; justify-content:space-between; align-items:center; transition:all .2s;
+  }
+  .btn-hint:hover:not(:disabled){background:rgba(255,170,0,0.07);border-color:var(--amber);}
+  .btn-hint:disabled{opacity:.22;cursor:not-allowed;color:#444;border-color:#222;}
+  .hint-meta{font-size:0.58rem;opacity:.7;}
+
+  /* ── SYMBOLS PANEL ── */
+  .sym-panel {
+    width:100%; max-width:740px; margin-top:14px;
+    padding:12px 20px; border:1px solid var(--border);
+    background:var(--panel); display:flex; justify-content:space-between; align-items:center; gap:16px;
+  }
+  .sym-label { font-size:0.58rem; color:var(--green-dim); letter-spacing:0.22em; white-space:nowrap; line-height:1.6; }
+  .sym-val   { font-size:1.4rem; letter-spacing:0.4em; color:var(--gold); text-shadow:0 0 12px var(--gold); min-height:1.5rem; }
+
+  /* ── TRANSITION SCREEN ── */
+  .trans-screen {
+    display:none; flex-direction:column; align-items:center;
+    text-align:center; padding:30px 20px; animation:pop .5s ease;
+  }
+  .trans-screen.show { display:flex; }
+  .trans-title {
+    font-family:'Cinzel',serif;
+    font-size:clamp(1.1rem,4vw,1.7rem);
+    color:var(--gold); animation:glowGold 2s infinite;
+    letter-spacing:0.12em; margin-bottom:14px;
+  }
+  .trans-symbols { font-size:2.2rem; margin:16px 0; letter-spacing:0.4em; }
+  .trans-msg { font-size:0.78rem; color:#88ffcc; line-height:1.8; max-width:480px; margin-bottom:20px; }
+  .trans-instruction { font-size:0.8rem; color:var(--green-dim); margin-bottom:18px; line-height:1.7; }
+  .trans-input-row { display:flex; gap:10px; align-items:center; margin-bottom:0; }
+  .trans-input {
+    background:transparent; border:none; border-bottom:2px solid var(--gold);
+    color:var(--gold); font-family:'Share Tech Mono',monospace;
+    font-size:1rem; padding:7px 4px; outline:none; letter-spacing:0.15em;
+    caret-color:var(--gold); width:220px;
+  }
+  .trans-input::placeholder { color:#443300; }
+  .trans-input.shake { animation:shake .35s ease; }
+  .btn-trans {
+    background:transparent; border:1px solid var(--gold);
+    color:var(--gold); font-family:'Share Tech Mono',monospace;
+    font-size:0.75rem; padding:8px 18px; cursor:pointer;
+    letter-spacing:0.2em; text-transform:uppercase; transition:all .2s;
+  }
+  .btn-trans:hover { background:var(--gold); color:#000; }
+  .trans-err { font-size:0.72rem; color:var(--red); margin-top:8px; min-height:1rem; }
+
+  /* ── END SCREENS ── */
+  .end-screen {
+    display:none; flex-direction:column; align-items:center;
+    text-align:center; padding:36px 20px; animation:pop .6s ease;
+  }
+  .end-screen.show { display:flex; }
+  .end-title {
+    font-family:'Cinzel',serif;
+    font-size:clamp(1.3rem,5vw,2.1rem);
+    letter-spacing:0.1em; margin-bottom:12px;
+  }
+  .end-title.win  { color:var(--green); animation:glow 2s infinite; }
+  .end-title.lose { color:var(--red);   animation:glowRed 1s infinite; }
+  .end-symbols { font-size:1.8rem; letter-spacing:0.45em; color:var(--gold); text-shadow:0 0 20px var(--gold); margin:18px 0; }
+  .end-quote {
+    font-size:0.78rem; color:#88ffcc; line-height:1.9; max-width:480px;
+    margin-bottom:18px; border-left:2px solid var(--green-dim); padding-left:14px; text-align:left;
+  }
+  .end-msg { font-size:0.76rem; color:var(--green-dim); line-height:1.7; max-width:460px; margin-bottom:22px; }
+  .btn-restart {
+    background:transparent; border:1px solid var(--green);
+    color:var(--green); font-family:'Share Tech Mono',monospace;
+    font-size:0.8rem; padding:12px 36px; cursor:pointer;
+    letter-spacing:0.25em; text-transform:uppercase; transition:all .2s;
+  }
+  .btn-restart:hover { background:var(--green); color:#000; }
+
+  footer { margin-top:22px; font-size:0.52rem; color:#002211; letter-spacing:0.22em; text-align:center; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="classified">⚠ CLASSIFICADO ⚠</div>
+  <div class="title" id="mainTitle">OPERAÇÃO POETA<br>RESGATE</div>
+  <div class="subtitle">Terminal de Campo &nbsp;·&nbsp; Acesso Nível 5 &nbsp;·&nbsp; Uso Restrito</div>
+  <div class="alert-strip">
+    <strong>ALERTA CRÍTICO:</strong> Um poeta foi raptado por forças que pretendem apagar o seu testemunho para sempre. A vossa única arma é a palavra. Resolvam os enigmas, recuperem os símbolos e libertem o poeta antes que o tempo acabe.
+  </div>
+</header>
+
+<!-- HUD -->
+<div class="hud">
+  <div class="hud-panel">
+    <div class="hud-label">⏱ TEMPO RESTANTE</div>
+    <div class="timer-display" id="timerDisplay">30:00</div>
+  </div>
+  <div class="hud-center">
+    <div class="level-badge" id="levelBadge">NÍVEL 1</div>
+    <div class="enigma-badge" id="enigmaBadge">ENIGMA 1/4</div>
+    <div class="step-dots" id="stepDots"></div>
+  </div>
+  <div class="hud-panel" style="text-align:right">
+    <div class="hud-label">ESTADO DA MISSÃO</div>
+    <div class="hud-status" id="missionStatus" style="color:var(--amber)">EM CURSO</div>
+  </div>
+</div>
+
+<div class="prog-wrap">
+  <div class="prog-fill" id="progFill" style="width:100%"></div>
+</div>
+
+<!-- TERMINAL -->
+<div class="terminal">
+  <div class="term-bar">
+    <div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div>
+    <div class="term-id" id="termId">OPERAÇÃO_POETA :: TERMINAL_v3.0 :: NÍVEL_1</div>
+  </div>
+  <div class="term-body">
+
+    <!-- Game area -->
+    <div id="gameArea">
+      <div class="log" id="logBox"></div>
+      <div class="input-row">
+        <span class="prompt-sym">&gt;&nbsp;</span>
+        <input type="text" class="ans-input" id="ansInput" placeholder="introduz a resposta..." autocomplete="off" spellcheck="false"/>
+        <button class="btn-enter" id="btnEnter">ENTER</button>
+      </div>
+      <button class="btn-hint" id="btnHint">
+        <span>⚡ PEDIR DICA &nbsp;<span style="color:var(--red);font-size:0.6rem">[-1 MINUTO]</span></span>
+        <span class="hint-meta" id="hintMeta">2 dicas disponíveis</span>
+      </button>
+    </div>
+
+    <!-- Level transition screen -->
+    <div class="trans-screen" id="transScreen">
+      <div class="trans-title" id="transTitle"></div>
+      <div class="trans-symbols" id="transSymbols"></div>
+      <div class="trans-msg" id="transMsg"></div>
+      <div class="trans-instruction" id="transInstruction"></div>
+      <div class="trans-input-row" id="transInputRow">
+        <input type="text" class="trans-input" id="transInput" placeholder="palavra de passe..." autocomplete="off" spellcheck="false"/>
+        <button class="btn-trans" id="btnTrans">AVANÇAR</button>
+      </div>
+      <div class="trans-err" id="transErr"></div>
+    </div>
+
+    <!-- Win screen -->
+    <div class="end-screen" id="screenWin">
+      <div class="end-title win">✦ O POETA ESTÁ LIVRE! ✦</div>
+      <div class="end-symbols" id="winSymbols"></div>
+      <div class="end-quote">
+        "E mesmo será meu, tido por meu, contado como meu,<br>
+        até mesmo aquele pouco e miserável<br>
+        que, só por vós, sem roubo, havereis feito."<br>
+        <span style="color:var(--green-dim);font-size:0.7rem">— Jorge de Sena</span>
+      </div>
+      <div class="end-msg">Completaram todos os níveis. Os enigmas foram decifrados, os símbolos recuperados e o poeta libertado.<br>O testemunho sobrevive.</div>
+      <button class="btn-restart" onclick="restart()">↺ NOVA MISSÃO</button>
+    </div>
+
+    <!-- Fail screen -->
+    <div class="end-screen" id="screenFail">
+      <div class="end-title lose">✗ MISSÃO FALHADA</div>
+      <div class="end-quote">
+        "Nada tereis, mas nada: nem os ossos,<br>
+        que um vosso esqueleto há-de ser buscado,<br>
+        para passar por meu."<br>
+        <span style="color:var(--green-dim);font-size:0.7rem">— Jorge de Sena</span>
+      </div>
+      <div class="end-msg">O tempo esgotou-se. O poeta permanece nas mãos dos raptores.<br>A memória foi silenciada — por agora.</div>
+      <button class="btn-restart" onclick="restart()">↺ TENTAR DE NOVO</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Symbols panel -->
+<div class="sym-panel">
+  <div class="sym-label">SÍMBOLOS<br>RECUPERADOS</div>
+  <div class="sym-val" id="symVal">—</div>
+</div>
+
+<footer>OPERAÇÃO POETA &nbsp;|&nbsp; TERMINAL DE CAMPO &nbsp;|&nbsp; ACESSO EXCLUSIVO DO MODERADOR</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  ESTRUTURA DO JOGO
+//  poetRevealed: true após enigma 1 do nível 1
+// ═══════════════════════════════════════════════════════
+
+const LEVELS = [
+  {
+    id: 1,
+    label: "NÍVEL 1",
+    termLabel: "NÍVEL_1",
+    // Palavra-passe para avançar ao nível 2
+    password: "sena",
+    // Símbolos dados na transição (formas geométricas)
+    transSymbols: "△ ▭",   // triângulo + quadrado
+    transTitle: "► NÍVEL 1 CONCLUÍDO — POETA IDENTIFICADO",
+    transMsg: `"O poeta foi identificado: Jorge de Sena.\nA missão continua. O poeta foi visto pela última vez no exílio.\nRecuperaram os primeiros símbolos. Avancem para o Nível 2."`,
+    transInstruction: "Para aceder ao Nível 2, introduzam a palavra de passe descoberta neste nível:",
+    enigmas: [
+      {
+        answer: "injustiça",
+        hints: [
+          "A solução reside na única palavra que se encontra oblíqua em relação às outras.",
+          "Devias centrar a tua atenção naquilo que se encontra em segundo lugar."
+        ],
+        reward: "N",
+        intro: [
+          ["sys",       "► SISTEMA INICIALIZADO. BEM-VINDOS À OPERAÇÃO POETA."],
+          ["narrative", "  Um poeta foi raptado. A sua identidade é desconhecida."],
+          ["narrative", "  Os raptores querem apagar o seu testemunho para sempre."],
+          ["narrative", "  Decifrem os enigmas. Descubram quem é o poeta. Libertem-no."],
+          ["sys",       "────────────────────────────────────────────────────"],
+          ["sys",       "► ENIGMA 01/04 — NÍVEL 1. Introduz a resposta:"],
+        ]
+      },
+      {
+        answer: "s",
+        hints: [
+          "Que som predomina nesta frase?",
+          "Qual é o recurso expressivo que está associado à repetição de um som?"
+        ],
+        reward: "S",
+        intro: [
+          ["ok",        "✓ ENIGMA 01 SUPERADO."],
+          ["sys",       "────────────────────────────────────────────────────"],
+          ["narrative", "  O poeta usou a linguagem como arma contra a opressão."],
+          ["narrative", "  A repetição de sons não é acidente — é intenção."],
+          ["sys",       "► ENIGMA 02/04 — NÍVEL 1. Introduz a resposta:"],
+        ]
+      },
+      {
+        answer: ["escola naval - engenharia civil - exílio no brasil - estados unidos",
+                 "escola naval engenharia civil exílio no brasil estados unidos",
+                 "escola naval - engenharia civil - exilio no brasil - estados unidos",
+                 "escola naval engenharia civil exilio no brasil estados unidos"],
+        hints: [
+          "Às vezes é preciso dar um passo atrás, para estar dois à frente.",
+          "Não te parece que o alfabeto está distorcido?"
+        ],
+        reward: "E",
+        intro: [
+          ["ok",        "✓ ENIGMA 02 SUPERADO."],
+          ["sys",       "────────────────────────────────────────────────────"],
+          ["narrative", "  O poeta percorreu um longo caminho. As suas pegadas"],
+          ["narrative", "  estão escondidas na ordem das coisas."],
+          ["sys",       "► ENIGMA 03/04 — NÍVEL 1. Introduz a resposta:"],
+        ]
+      },
+      {
+        answer: "a",
+        hints: [
+          "Eram 26, mas agora são 62.",
+          "Talvez devesses virar este enigma do avesso."
+        ],
+        reward: "A",
+        intro: [
+          ["ok",        "✓ ENIGMA 03 SUPERADO."],
+          ["sys",       "────────────────────────────────────────────────────"],
+          ["narrative", "  Estão quase a descobrir a identidade do poeta."],
+          ["narrative", "  Este último enigma guarda o segredo final do Nível 1."],
+          ["sys",       "► ENIGMA 04/04 — NÍVEL 1 — ENIGMA FINAL. Introduz a resposta:"],
+        ]
+      }
+    ]
+  },
+  {
+    id: 2,
+    label: "NÍVEL 2",
+    termLabel: "NÍVEL_2",
+    password: null,
+    transSymbols: "♡ ⏢",   // coração + trapézio
+    transTitle: "► NÍVEL 2 CONCLUÍDO",
+    transMsg: `"Jorge de Sena resistiu ao silêncio imposto.\nOs símbolos recuperados aproximam-vos da sua libertação.\nAvancem para o Nível 3."`,
+    transInstruction: "Para aceder ao Nível 3, introduzam a palavra de passe:",
+    enigmas: [
+      {
+        answer: "novo",
+        hints: [
+          "Presta atenção à primeira letra de cada palavra a negrito.",
+          "Regime político."
+        ],
+        reward: "Podem prosseguir",
+        intro: [
+          ["sys",       "► NÍVEL 2 INICIADO. BEM-VINDOS, AGENTES."],
+          ["narrative", "  Jorge de Sena viveu sob um regime que tentou silenciá-lo."],
+          ["narrative", "  A resposta está na história política de Portugal."],
+          ["sys",       "────────────────────────────────────────────────────"],
+          ["sys",       "► ENIGMA 01/03 — NÍVEL 2. Introduz a resposta:"],
+        ]
+      },
+      {
+        answer: ["presente e passado", "passado e presente"],
+        hints: [
+          "Que temas são alvo de debate entre ti e os teus avós?",
+          "Não tens nostalgia dos teus tempos de infância?"
+        ],
+        reward: "Podem prosseguir",
+        intro: [
+          ["ok",        "✓ ENIGMA 01 SUPERADO."],
+          ["sys",       "────────────────────────────────────────────────────"],
+          ["narrative", "  Sena dialogava com o tempo. Com o que foi e o que é."],
+          ["narrative", "  A memória e o presente coexistem na sua poesia."],
+          ["sys",       "► ENIGMA 02/03 — NÍVEL 2. Introduz a resposta:"],
+        ]
+      },
+      {
+        answer: ["conhecerás e vida", "vida e conhecerás"],
+        hints: [
+          "As palavras repetem-se duas vezes.",
+          "Jorge de Sena interpolou-as."
+        ],
+        reward: null,  // recompensa na transição
+        intro: [
+          ["ok",        "✓ ENIGMA 02 SUPERADO."],
+          ["sys",       "────────────────────────────────────────────────────"],
+          ["narrative", "  O último enigma deste nível esconde uma estrutura poética."],
+          ["narrative", "  Sena usou a interpolação como arma literária."],
+          ["sys",       "► ENIGMA 03/03 — NÍVEL 2 — ENIGMA FINAL. Introduz a resposta:"],
+        ]
+      }
+    ]
+  },
+  {
+    id: 3,
+    label: "NÍVEL 3",
+    termLabel: "NÍVEL_3",
+    password: null,
+    transSymbols: "★ ● ▮",   // estrela + círculo + retângulo vertical
+    transTitle: "► NÍVEL 3 CONCLUÍDO",
+    transMsg: `"Estão na reta final. A força que sempre perseguiu Sena\nainda o mantém cativo. Um último enigma os separa da liberdade."`,
+    transInstruction: "Para aceder ao Nível Final, introduzam a palavra de passe:",
+    enigmas: [
+      {
+        answer: "pleonasmo",
+        hints: [
+          "Tens alguma certeza absoluta?",
+          "Por mais que Jorge de Sena repita 'Quem', não é essa repetição que procuras..."
+        ],
+        reward: "Podem prosseguir",
+        intro: [
+          ["sys",       "► NÍVEL 3 INICIADO. A missão aproxima-se do fim."],
+          ["narrative", "  Sena dominava os recursos da língua com precisão cirúrgica."],
+          ["narrative", "  Nem tudo o que parece repetição é repetição."],
+          ["sys",       "────────────────────────────────────────────────────"],
+          ["sys",       "► ENIGMA 01/03 — NÍVEL 3. Introduz a resposta:"],
+        ]
+      },
+      {
+        answer: "indignação",
+        hints: [
+          "Lembras-te do primeiro enigma deste Escape Room? Que emoção estava associada à palavra que identificaste?",
+          "Jorge de Sena devia estar mesmo revoltado com todas aquelas injustiças..."
+        ],
+        reward: "Podem prosseguir",
+        intro: [
+          ["ok",        "✓ ENIGMA 01 SUPERADO."],
+          ["sys",       "────────────────────────────────────────────────────"],
+          ["narrative", "  A emoção que move o poeta é a mesma que move a resistência."],
+          ["sys",       "► ENIGMA 02/03 — NÍVEL 3. Introduz a resposta:"],
+        ]
+      },
+      {
+        answer: ["à própria sociedade", "a quem pratica a mentira",
+                 "à propria sociedade", "a propria sociedade"],
+        hints: [
+          "Por mais que pareça, esta pergunta não requer uma resposta óbvia.",
+          "Quem é que é responsável por estas ações/eventos que o poeta refere?"
+        ],
+        reward: null,  // recompensa na transição
+        intro: [
+          ["ok",        "✓ ENIGMA 02 SUPERADO."],
+          ["sys",       "────────────────────────────────────────────────────"],
+          ["narrative", "  O poema aponta o dedo. Mas a quem?"],
+          ["narrative", "  A resposta não está no óbvio — está no subtexto."],
+          ["sys",       "► ENIGMA 03/03 — NÍVEL 3 — ENIGMA FINAL. Introduz a resposta:"],
+        ]
+      }
+    ]
+  },
+  {
+    id: 4,
+    label: "NÍVEL FINAL",
+    termLabel: "NÍVEL_FINAL",
+    password: null,
+    transSymbols: null,
+    transTitle: null,
+    transMsg: null,
+    transInstruction: null,
+    enigmas: [
+      {
+        answer: "censura",
+        hints: [
+          "Porque não tentas virar este enigma do avesso?"
+        ],
+        reward: null,
+        intro: [
+          ["sys",       "► NÍVEL FINAL. UM ÚNICO ENIGMA SEPARA-VOS DA VITÓRIA."],
+          ["narrative", "  Os jogadores dispõem de uma imagem com símbolos e letras."],
+          ["narrative", "  ★X  ○U  ▯M  □H  △F  ♡I  ⏢Z"],
+          ["narrative", "  A força que sempre perseguiu Jorge de Sena está aqui."],
+          ["narrative", "  Nomeiem-na e libertem o poeta."],
+          ["sys",       "────────────────────────────────────────────────────"],
+          ["sys",       "► ENIGMA FINAL. Introduz a resposta:"],
+        ]
+      }
+    ]
+  }
+];
+
+// Passwords de transição entre níveis
+// Após nível 1 → "sena"; após nível 2 e 3 → usar qualquer texto (sem password)
+// Para simplificar: nível 2 e 3 avançam com qualquer input ou com botão direto
+// Definimos passwords como null = sem verificação, avança sempre
+
+// ═══════════════════════════════════════════════════════
+//  ESTADO
+// ═══════════════════════════════════════════════════════
+let curLevel   = 0;
+let curEnigma  = 0;
+let hintsUsed  = 0;
+let seconds    = 30 * 60;
+let active     = true;
+let ticker     = null;
+let collected  = [];
+let poetRevealed = false;
+
+// DOM
+const timerDisplay  = document.getElementById('timerDisplay');
+const progFill      = document.getElementById('progFill');
+const logBox        = document.getElementById('logBox');
+const ansInput      = document.getElementById('ansInput');
+const btnEnter      = document.getElementById('btnEnter');
+const btnHint       = document.getElementById('btnHint');
+const hintMeta      = document.getElementById('hintMeta');
+const symVal        = document.getElementById('symVal');
+const levelBadge    = document.getElementById('levelBadge');
+const enigmaBadge   = document.getElementById('enigmaBadge');
+const stepDots      = document.getElementById('stepDots');
+const missionStatus = document.getElementById('missionStatus');
+const gameArea      = document.getElementById('gameArea');
+const transScreen   = document.getElementById('transScreen');
+const transTitle    = document.getElementById('transTitle');
+const transSymbols  = document.getElementById('transSymbols');
+const transMsg      = document.getElementById('transMsg');
+const transInstruction = document.getElementById('transInstruction');
+const transInputRow = document.getElementById('transInputRow');
+const transInput    = document.getElementById('transInput');
+const btnTrans      = document.getElementById('btnTrans');
+const transErr      = document.getElementById('transErr');
+const screenWin     = document.getElementById('screenWin');
+const screenFail    = document.getElementById('screenFail');
+const winSymbols    = document.getElementById('winSymbols');
+const mainTitle     = document.getElementById('mainTitle');
+const termId        = document.getElementById('termId');
+
+// ═══════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════
+function fmt(s) {
+  return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+}
+
+function log(text, cls) {
+  const d = document.createElement('div');
+  d.className = `ll ${cls}`;
+  // handle newlines
+  d.style.whiteSpace = 'pre-wrap';
+  d.textContent = text;
+  logBox.appendChild(d);
+  logBox.scrollTop = logBox.scrollHeight;
+}
+
+function buildDots() {
+  stepDots.innerHTML = '';
+  const total = LEVELS[curLevel].enigmas.length;
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('div');
+    d.className = 'sdot' + (i < curEnigma ? ' done' : i === curEnigma ? ' active' : '');
+    stepDots.appendChild(d);
+  }
+}
+
+function updateHUD() {
+  const lv = LEVELS[curLevel];
+  levelBadge.textContent  = lv.label;
+  enigmaBadge.textContent = `ENIGMA ${curEnigma+1}/${lv.enigmas.length}`;
+  termId.textContent      = `OPERAÇÃO_POETA :: TERMINAL_v3.0 :: ${lv.termLabel}`;
+  buildDots();
+
+  // Title reveal
+  if (poetRevealed) {
+    mainTitle.innerHTML = 'OPERAÇÃO SENA<br>RESGATE DO POETA';
+  }
+}
+
+function updateHint() {
+  const lv = LEVELS[curLevel];
+  const maxH = lv.enigmas[curEnigma].hints.length;
+  const rem = maxH - hintsUsed;
+  hintMeta.textContent = `${rem} dica${rem !== 1 ? 's' : ''} disponível${rem !== 1 ? 'is' : ''}`;
+  btnHint.disabled = (rem === 0 || !active);
+}
+
+function updateSymbols() {
+  symVal.textContent = collected.length ? collected.join(' ') : '—';
+}
+
+function checkAnswer(input, correct) {
+  const norm = s => s.trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const inp = norm(input);
+  if (Array.isArray(correct)) {
+    return correct.some(c => norm(c) === inp);
+  }
+  return norm(correct) === inp;
+}
+
+// ═══════════════════════════════════════════════════════
+//  TIMER
+// ═══════════════════════════════════════════════════════
+function tick() {
+  if (!active) return;
+  seconds--;
+  timerDisplay.textContent = fmt(seconds);
+  const pct = (seconds / 1800) * 100;
+  progFill.style.width = pct + '%';
+  if (seconds <= 300) {
+    timerDisplay.className = 'timer-display danger';
+    progFill.style.background = 'var(--red)';
+  } else if (seconds <= 600) {
+    timerDisplay.className = 'timer-display warn';
+    progFill.style.background = 'var(--amber)';
+  }
+  if (seconds <= 0) { clearInterval(ticker); fail(); }
+}
+
+// ═══════════════════════════════════════════════════════
+//  LOAD ENIGMA
+// ═══════════════════════════════════════════════════════
+function loadEnigma() {
+  logBox.innerHTML = '';
+  hintsUsed = 0;
+  ansInput.value = '';
+  updateHUD();
+  updateHint();
+  ansInput.focus();
+
+  const e = LEVELS[curLevel].enigmas[curEnigma];
+  e.intro.forEach(([cls, txt], i) => {
+    setTimeout(() => log(txt, cls), i * 180);
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  SUBMIT ANSWER
+// ═══════════════════════════════════════════════════════
+function submit() {
+  if (!active) return;
+  const val = ansInput.value;
+  if (!val.trim()) return;
+  log(`> ${val}`, 'echo');
+  ansInput.value = '';
+
+  const lv = LEVELS[curLevel];
+  const e  = lv.enigmas[curEnigma];
+
+  if (checkAnswer(val, e.answer)) {
+    log('✓ RESPOSTA CORRETA. ACESSO CONCEDIDO.', 'ok');
+
+    // Add reward symbol
+    if (e.reward) {
+      const isProsseguir = e.reward === 'Podem prosseguir';
+      setTimeout(() => {
+        if (!isProsseguir) {
+          log(`► SÍMBOLO RECUPERADO: ${e.reward}`, 'reward');
+          collected.push(e.reward);
+          updateSymbols();
+        } else {
+          log('► Podem prosseguir.', 'ok');
+        }
+      }, 500);
+    }
+
+    curEnigma++;
+
+    if (curEnigma >= lv.enigmas.length) {
+      // Level complete
+      if (curLevel >= LEVELS.length - 1) {
+        // Final level complete → WIN
+        setTimeout(win, 2800);
+      } else {
+        // Level 1 shows transition screen; levels 2+ auto-advance
+        if (curLevel === 0) {
+          setTimeout(showTransition, 2800);
+        } else {
+          setTimeout(autoAdvanceLevel, 2800);
+        }
+      }
+    } else {
+      setTimeout(() => loadEnigma(), 2800);
+    }
+  } else {
+    log('✗ RESPOSTA INCORRETA. O POETA ESPERA. TENTA NOVAMENTE.', 'err');
+    ansInput.classList.add('shake');
+    setTimeout(() => ansInput.classList.remove('shake'), 380);
+    ansInput.focus();
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  HINT
+// ═══════════════════════════════════════════════════════
+function hint() {
+  if (!active) return;
+  const e = LEVELS[curLevel].enigmas[curEnigma];
+  if (hintsUsed >= e.hints.length) return;
+  const h = e.hints[hintsUsed];
+  hintsUsed++;
+  seconds = Math.max(0, seconds - 60);
+  timerDisplay.textContent = fmt(seconds);
+  log(`⚡ DICA ${hintsUsed}: ${h}  [-1 MINUTO DEDUZIDO]`, 'hint');
+  updateHint();
+  ansInput.focus();
+}
+
+// ═══════════════════════════════════════════════════════
+//  LEVEL TRANSITION
+// ═══════════════════════════════════════════════════════
+function showTransition() {
+  const lv = LEVELS[curLevel];
+  gameArea.style.display = 'none';
+  transScreen.classList.add('show');
+  transErr.textContent = '';
+  transInput.value = '';
+
+  transTitle.textContent   = lv.transTitle;
+  transSymbols.textContent = lv.transSymbols || '';
+  transMsg.style.whiteSpace = 'pre-wrap';
+  transMsg.textContent     = lv.transMsg;
+  transInstruction.textContent = lv.transInstruction || '';
+
+  // After level 1: remove the letter symbols (N, S, E, A) collected during level 1
+  if (curLevel === 0) {
+    collected = collected.filter(s => !['N','S','E','A'].includes(s));
+    updateSymbols();
+  }
+
+  // Add transition symbols to collected
+  if (lv.transSymbols) {
+    collected.push(lv.transSymbols);
+    updateSymbols();
+  }
+
+  // Show/hide password input - only level 1 needs password
+  if (lv.password && curLevel === 0) {
+    transInputRow.style.display = 'flex';
+    transInput.placeholder = 'palavra de passe...';
+    setTimeout(() => transInput.focus(), 300);
+  } else {
+    transInputRow.style.display = 'none';
+  }
+
+  // For levels 2+ no password needed, show advance button label differently
+  if (curLevel > 0) {
+    btnTrans.textContent = 'AVANÇAR →';
+  } else {
+    btnTrans.textContent = 'AVANÇAR';
+  }
+}
+
+function autoAdvanceLevel() {
+  const lv = LEVELS[curLevel];
+  // Add transition symbols to collected
+  if (lv.transSymbols) {
+    collected.push(lv.transSymbols);
+    updateSymbols();
+  }
+  // Show level complete message in log before advancing
+  log('', 'sep');
+  log(`► ${lv.transTitle}`, 'level-up');
+  if (lv.transSymbols) {
+    log(`► SÍMBOLOS DESBLOQUEADOS: ${lv.transSymbols}`, 'reward');
+  }
+  setTimeout(() => {
+    curLevel++;
+    curEnigma = 0;
+    updateHUD();
+    loadEnigma();
+  }, 1800);
+}
+
+function advanceLevel() {
+  const lv = LEVELS[curLevel];
+
+  if (lv.password && curLevel === 0) {
+    const norm = s => s.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    if (norm(transInput.value) !== norm(lv.password)) {
+      transErr.textContent = '✗ PALAVRA DE PASSE INCORRETA.';
+      transInput.classList.add('shake');
+      setTimeout(() => transInput.classList.remove('shake'), 380);
+      transInput.value = '';
+      transInput.focus();
+      return;
+    }
+  }
+
+  transErr.textContent = '';
+
+  // Reveal poet name only after level 1 password is accepted
+  if (curLevel === 0 && !poetRevealed) {
+    poetRevealed = true;
+    transErr.style.color = 'var(--gold)';
+    transErr.textContent = '★ IDENTIDADE CONFIRMADA: JORGE DE SENA ★';
+    mainTitle.innerHTML = 'OPERAÇÃO SENA<br>RESGATE DO POETA';
+    setTimeout(() => {
+      transErr.textContent = '';
+      transErr.style.color = 'var(--red)';
+      transScreen.classList.remove('show');
+      gameArea.style.display = 'block';
+      curLevel++;
+      curEnigma = 0;
+      updateHUD();
+      loadEnigma();
+    }, 2200);
+    return;
+  }
+
+  transScreen.classList.remove('show');
+  gameArea.style.display = 'block';
+
+  curLevel++;
+  curEnigma = 0;
+  updateHUD();
+  loadEnigma();
+}
+
+// ═══════════════════════════════════════════════════════
+//  WIN / FAIL
+// ═══════════════════════════════════════════════════════
+function win() {
+  active = false;
+  clearInterval(ticker);
+  missionStatus.textContent = 'SUCESSO';
+  missionStatus.style.color = 'var(--green)';
+  gameArea.style.display    = 'none';
+  transScreen.classList.remove('show');
+  screenWin.classList.add('show');
+  winSymbols.textContent = collected.join(' ');
+}
+
+function fail() {
+  active = false;
+  missionStatus.textContent = 'FALHADO';
+  missionStatus.style.color = 'var(--red)';
+  gameArea.style.display    = 'none';
+  transScreen.classList.remove('show');
+  screenFail.classList.add('show');
+}
+
+// ═══════════════════════════════════════════════════════
+//  RESTART
+// ═══════════════════════════════════════════════════════
+function restart() {
+  curLevel = 0; curEnigma = 0; hintsUsed = 0;
+  seconds = 1800; active = true; collected = []; poetRevealed = false;
+
+  timerDisplay.textContent  = '30:00';
+  timerDisplay.className    = 'timer-display';
+  progFill.style.width      = '100%';
+  progFill.style.background = 'var(--green)';
+  missionStatus.textContent = 'EM CURSO';
+  missionStatus.style.color = 'var(--amber)';
+  mainTitle.innerHTML       = 'OPERAÇÃO POETA<br>RESGATE';
+  updateSymbols();
+
+  gameArea.style.display = 'block';
+  transScreen.classList.remove('show');
+  screenWin.classList.remove('show');
+  screenFail.classList.remove('show');
+
+  clearInterval(ticker);
+  ticker = setInterval(tick, 1000);
+  loadEnigma();
+}
+
+// ═══════════════════════════════════════════════════════
+//  EVENTS
+// ═══════════════════════════════════════════════════════
+btnEnter.addEventListener('click', submit);
+ansInput.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+btnHint.addEventListener('click', hint);
+btnTrans.addEventListener('click', advanceLevel);
+transInput.addEventListener('keydown', e => { if (e.key === 'Enter') advanceLevel(); });
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+updateHUD();
+loadEnigma();
+ticker = setInterval(tick, 1000);
+</script>
+</body>
+</html>
